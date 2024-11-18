@@ -4,12 +4,15 @@ import { LogOut, Plus, User, Home, Menu, X, Coffee, MessageSquare } from 'lucide
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import { slideIn } from '../utils/animations';
+import { LanguageSelector } from './LanguageSelector';
+import { useTranslation } from 'react-i18next';
 
 const Navbar = () => {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { t } = useTranslation();
 
   const handleLogout = async () => {
     try {
@@ -64,15 +67,18 @@ const Navbar = () => {
             <NavLink to="/profile" icon={User} label="Profile" />
             <NavLink to="/donation" icon={Coffee} label="Support Us" />
             <NavLink to="/feedback" icon={MessageSquare} label="Feedback" />
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-indigo-600 transition-colors"
-            >
-              <LogOut className="w-5 h-5" />
-              <span>Logout</span>
-            </motion.button>
+            <div className="flex items-center gap-4">
+              <LanguageSelector />
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-indigo-600 transition-colors"
+              >
+                <LogOut className="w-5 h-5" />
+                <span>Logout</span>
+              </motion.button>
+            </div>
           </div>
 
           {/* Mobile Menu Button */}

@@ -1,321 +1,86 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '../config/firebase';
-import { Habit } from '../types/habit';
-import { Award, Calendar, Target, ChartBar, Trophy, Star, Lock, CheckCircle } from 'lucide-react';
-import { achievements, getRarityColor, getRarityLabel, Achievement } from '../types/achievement';
-import { calculateHabitStats } from '../utils/statistics';
 import { motion } from 'framer-motion';
-import { containerVariants, fadeIn, scaleIn } from '../utils/animations';
 import { 
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, LineChart, Line, CartesianGrid
-} from 'recharts';
+  User, Settings, Shield, Bell, Mail, 
+  LogOut, ChevronRight, Calendar, Activity
+} from 'lucide-react';
+import toast from 'react-hot-toast';
+import { fadeIn, containerVariants } from '../utils/animations';
+import { useNavigate } from 'react-router-dom';
+import { PersonalInfoModal } from '../components/profile/PersonalInfoModal';
+import { EmailSettingsModal } from '../components/profile/EmailSettingsModal';
+import { NotificationsModal } from '../components/profile/NotificationsModal';
+import { ActivityLogModal } from '../components/profile/ActivityLogModal';
+import { AppSettingsModal } from '../components/profile/AppSettingsModal';
+import { useTranslation } from 'react-i18next';
+
+const ProfileSection = ({ title, children }: { title: string, children: React.ReactNode }) => {
+  const { t } = useTranslation();
+  return (
+    <motion.div variants={fadeIn} className="bg-white rounded-2xl shadow-sm p-6 mb-6">
+      <h3 className="text-lg font-semibold text-gray-800 mb-4">{t(title)}</h3>
+      {children}
+    </motion.div>
+  );
+};
+
+interface MenuItemProps {
+  icon: React.ElementType;
+  title: string;
+  subtitle: string;
+  onClick: () => void;
+  disabled?: boolean;
+}
+
+const MenuItem = ({ icon: Icon, title, subtitle, onClick, disabled = false }: MenuItemProps) => {
+  const { t } = useTranslation();
+  return (
+    <motion.button
+      whileHover={{ x: 4 }}
+      whileTap={{ scale: 0.98 }}
+      onClick={onClick}
+      disabled={disabled}
+      className={`w-full flex items-center justify-between p-4 rounded-xl 
+                hover:bg-gray-50 transition-all duration-200
+                ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+    >
+      <div className="flex items-center gap-4">
+        <div className="p-2 bg-indigo-50 rounded-lg">
+          <Icon className="w-5 h-5 text-indigo-600" />
+        </div>
+        <div className="text-left">
+          <h4 className="font-medium text-gray-900">{t(title)}</h4>
+          <p className="text-sm text-gray-500">{t(subtitle)}</p>
+        </div>
+      </div>
+      <ChevronRight className="w-5 h-5 text-gray-400" />
+    </motion.button>
+  );
+};
 
 const Profile = () => {
-  const { currentUser } = useAuth();
-  const [habits, setHabits] = useState<Habit[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'achievements' | 'statistics'>('achievements');
+  const { currentUser, logout } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const { t } = useTranslation();
+  const [showPersonalInfo, setShowPersonalInfo] = useState(false);
+  const [showEmailSettings, setShowEmailSettings] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showActivityLog, setShowActivityLog] = useState(false);
+  const [showAppSettings, setShowAppSettings] = useState(false);
 
-  useEffect(() => {
-    const fetchHabits = async () => {
-      if (!currentUser) return;
-
-      try {
-        const habitsRef = collection(db, 'habits');
-        const q = query(habitsRef, where('userId', '==', currentUser.uid));
-        const querySnapshot = await getDocs(q);
-        const habitsData = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-          startDate: doc.data().startDate.toDate(),
-          createdAt: doc.data().createdAt.toDate(),
-          updatedAt: doc.data().updatedAt.toDate(),
-          lastCheckin: doc.data().lastCheckin?.toDate() || null
-        })) as Habit[];
-
-        setHabits(habitsData);
-      } catch (error) {
-        console.error('Error fetching habits:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchHabits();
-  }, [currentUser]);
-
-  const stats = calculateHabitStats(habits);
-  const unlockedAchievements = achievements.filter(achievement => 
-    achievement.condition(stats)
-  );
-
-  const AchievementCard = ({ achievement, unlocked }: { achievement: Achievement, unlocked: boolean }) => {
-    const rarityColors = getRarityColor(achievement.rarity);
-    
-    return (
-      <motion.div
-        variants={fadeIn}
-        whileHover={{ scale: unlocked ? 1.05 : 1 }}
-        className={`p-4 rounded-xl text-center relative ${
-          unlocked 
-            ? `bg-white border-2 border-${rarityColors.split(' ')[0]}`
-            : 'bg-gray-50 border-2 border-gray-200'
-        }`}
-      >
-        {!unlocked && (
-          <div className="absolute inset-0 bg-gray-100/50 backdrop-blur-[1px] rounded-xl 
-                        flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-            <div className="bg-white/90 px-3 py-1 rounded-full text-sm text-gray-600 flex items-center gap-1">
-              <Lock size={14} />
-              Keep going!
-            </div>
-          </div>
-        )}
-        <div className={`text-4xl mb-2 ${!unlocked && 'grayscale'}`}>{achievement.icon}</div>
-        <h3 className={`font-semibold mb-1 ${unlocked ? 'text-gray-800' : 'text-gray-600'}`}>
-          {achievement.title}
-        </h3>
-        <p className="text-sm text-gray-500 mb-2">
-          {achievement.description}
-        </p>
-        <div className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full ${rarityColors}`}>
-          <Star size={12} />
-          {getRarityLabel(achievement.rarity)}
-        </div>
-        {unlocked && (
-          <div className="mt-2 inline-flex items-center gap-1 text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full">
-            <CheckCircle size={12} />
-            Achieved
-          </div>
-        )}
-      </motion.div>
-    );
-  };
-
-  const renderAchievements = () => {
-    const achieved = achievements.filter(achievement => achievement.condition(stats));
-    const locked = achievements.filter(achievement => !achievement.condition(stats));
-
-    const rarityOrder: Achievement['rarity'][] = ['legendary', 'epic', 'rare', 'common'];
-    
-    return (
-      <div className="space-y-8">
-        {/* Progress Overview */}
-        <div className="bg-white rounded-lg p-4 shadow-sm">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Achievement Progress</h3>
-          <div className="flex items-center gap-4">
-            <div className="flex-1">
-              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${(achieved.length / achievements.length) * 100}%` }}
-                  className="h-full bg-indigo-600"
-                />
-              </div>
-            </div>
-            <div className="text-sm font-medium text-gray-600">
-              {achieved.length}/{achievements.length}
-            </div>
-          </div>
-        </div>
-
-        {/* Achievements by Rarity */}
-        {rarityOrder.map(rarity => {
-          const rarityAchievements = achievements.filter(a => a.rarity === rarity);
-          if (rarityAchievements.length === 0) return null;
-
-          return (
-            <div key={rarity}>
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                <Star className={getRarityColor(rarity).split(' ')[0]} size={20} />
-                {getRarityLabel(rarity)} Achievements
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {rarityAchievements.map(achievement => (
-                  <AchievementCard
-                    key={achievement.id}
-                    achievement={achievement}
-                    unlocked={achieved.includes(achievement)}
-                  />
-                ))}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
-
-  // Custom tooltip component for charts
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white p-3 rounded-lg shadow-md border border-gray-100">
-          <p className="text-sm font-medium text-gray-900">{label}</p>
-          <p className="text-sm text-indigo-600">
-            {payload[0].value} {payload[0].value === 1 ? 'habit' : 'habits'}
-          </p>
-        </div>
-      );
+  const handleLogout = async () => {
+    try {
+      setLoading(true);
+      await logout();
+      navigate('/');
+      toast.success(t('profile.logout.success'));
+    } catch {
+      toast.error(t('profile.logout.error'));
+    } finally {
+      setLoading(false);
     }
-    return null;
-  };
-
-  const renderStatistics = () => {
-    // Transform data for charts
-    const categoryData = Object.entries(stats.categoryDistribution).map(([name, value]) => ({
-      name,
-      value
-    }));
-
-    const completionData = habits.map(habit => ({
-      name: habit.name.length > 15 ? habit.name.substring(0, 15) + '...' : habit.name,
-      streak: habit.currentStreak
-    })).sort((a, b) => b.streak - a.streak).slice(0, 5);
-
-    const COLORS = ['#4F46E5', '#7C3AED', '#EC4899', '#10B981', '#F59E0B'];
-
-    return (
-      <motion.div
-        variants={containerVariants}
-        initial="initial"
-        animate="animate"
-        className="space-y-6"
-      >
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <motion.div variants={fadeIn} className="bg-white p-4 rounded-xl shadow-sm">
-            <div className="text-sm text-gray-500 mb-1">Active Habits</div>
-            <div className="text-2xl font-bold text-indigo-600">{stats.totalHabits}</div>
-          </motion.div>
-          <motion.div variants={fadeIn} className="bg-white p-4 rounded-xl shadow-sm">
-            <div className="text-sm text-gray-500 mb-1">Total Days</div>
-            <div className="text-2xl font-bold text-purple-600">{stats.totalDaysStreak}</div>
-          </motion.div>
-          <motion.div variants={fadeIn} className="bg-white p-4 rounded-xl shadow-sm">
-            <div className="text-sm text-gray-500 mb-1">Completed</div>
-            <div className="text-2xl font-bold text-green-600">{stats.completedHabits}</div>
-          </motion.div>
-          <motion.div variants={fadeIn} className="bg-white p-4 rounded-xl shadow-sm">
-            <div className="text-sm text-gray-500 mb-1">Success Rate</div>
-            <div className="text-2xl font-bold text-amber-600">
-              {stats.totalHabits ? Math.round((stats.completedHabits / stats.totalHabits) * 100) : 0}%
-            </div>
-          </motion.div>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Category Distribution */}
-          <motion.div variants={fadeIn} className="bg-white rounded-xl p-4 shadow-sm">
-            <h3 className="text-sm font-medium text-gray-800 mb-4">Habits by Category</h3>
-            <div className="h-[200px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={categoryData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={50}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    paddingAngle={2}
-                    dataKey="value"
-                  >
-                    {categoryData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip content={<CustomTooltip />} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="flex flex-wrap justify-center gap-3 mt-2">
-                {categoryData.map((entry, index) => (
-                  <div key={entry.name} className="flex items-center gap-1.5 text-xs">
-                    <div 
-                      className="w-2 h-2 rounded-full" 
-                      style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                    />
-                    <span className="text-gray-600">{entry.name}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Top Habits */}
-          <motion.div variants={fadeIn} className="bg-white rounded-xl p-4 shadow-sm">
-            <h3 className="text-sm font-medium text-gray-800 mb-4">Top Performing Habits</h3>
-            <div className="h-[200px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={completionData} layout="vertical" barSize={20}>
-                  <XAxis type="number" hide />
-                  <YAxis 
-                    type="category" 
-                    dataKey="name" 
-                    width={100}
-                    tick={{ fontSize: 12 }}
-                  />
-                  <Tooltip 
-                    content={({ payload }) => 
-                      payload?.[0] ? (
-                        <div className="bg-white p-2 rounded-lg shadow-md border border-gray-100 text-xs">
-                          <div className="font-medium">{payload[0].payload.name}</div>
-                          <div className="text-indigo-600">{payload[0].value} day streak</div>
-                        </div>
-                      ) : null
-                    }
-                  />
-                  <Bar 
-                    dataKey="streak" 
-                    fill="#4F46E5"
-                    radius={[0, 4, 4, 0]}
-                  >
-                    {completionData.map((entry, index) => (
-                      <Cell 
-                        key={`cell-${index}`}
-                        fill={`rgba(79, 70, 229, ${1 - (index * 0.15)})`}
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Streak Timeline */}
-        <motion.div variants={fadeIn} className="bg-white rounded-xl p-4 shadow-sm">
-          <h3 className="text-sm font-medium text-gray-800 mb-4">Streak Timeline</h3>
-          <div className="h-[150px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={completionData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                <XAxis 
-                  dataKey="name" 
-                  tick={{ fontSize: 12 }}
-                  interval={0}
-                  angle={-45}
-                  textAnchor="end"
-                  height={50}
-                />
-                <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip content={<CustomTooltip />} />
-                <Line
-                  type="monotone"
-                  dataKey="streak"
-                  stroke="#4F46E5"
-                  strokeWidth={2}
-                  dot={{ fill: '#4F46E5', strokeWidth: 2 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </motion.div>
-      </motion.div>
-    );
   };
 
   if (loading) {
@@ -335,90 +100,117 @@ const Profile = () => {
       variants={containerVariants}
       initial="initial"
       animate="animate"
-      className="max-w-6xl mx-auto px-4 py-8"
+      className="max-w-4xl mx-auto px-4 py-8"
     >
-      <motion.div 
-        variants={fadeIn}
-        className="bg-white rounded-2xl shadow-sm p-8 mb-8"
-      >
-        <div className="flex items-center space-x-6">
+      {/* Profile Header */}
+      <motion.div variants={fadeIn} className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl shadow-lg p-8 mb-8 text-white">
+        <div className="flex items-center gap-6">
           <motion.div
             whileHover={{ scale: 1.1, rotate: 360 }}
             transition={{ duration: 0.5 }}
-            className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center"
+            className="w-24 h-24 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center"
           >
-            <span className="text-3xl text-indigo-600">
+            <span className="text-4xl font-bold">
               {currentUser?.email?.[0].toUpperCase()}
             </span>
           </motion.div>
           <div>
-            <h2 className="text-2xl font-bold text-gray-800">
+            <h2 className="text-2xl font-bold mb-2">
               {currentUser?.email}
             </h2>
-            <p className="text-gray-500">
-              Member since {new Date(currentUser?.metadata.creationTime || '').toLocaleDateString()}
-            </p>
+            <div className="flex items-center gap-2 text-white/80">
+              <Calendar className="w-4 h-4" />
+              <span className="text-sm">
+                {t('profile.joined')} {new Date(currentUser?.metadata.creationTime || '').toLocaleDateString()}
+              </span>
+            </div>
           </div>
         </div>
       </motion.div>
 
-      <motion.div 
-        variants={containerVariants}
-        className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
-      >
-        <motion.div variants={scaleIn} className="bg-white rounded-xl shadow-sm p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-800">Total Habits</h3>
-            <Target className="text-indigo-600" size={24} />
-          </div>
-          <p className="text-3xl font-bold text-indigo-600">{stats.totalHabits}</p>
-        </motion.div>
+      {/* Account Settings */}
+      <ProfileSection title="profile.accountSettings.title">
+        <div className="space-y-2 divide-y divide-gray-100">
+          <MenuItem 
+            icon={User}
+            title="profile.personalInfo.title"
+            subtitle="profile.personalInfo.subtitle"
+            onClick={() => setShowPersonalInfo(true)}
+          />
+          <MenuItem 
+            icon={Mail}
+            title="profile.emailSettings.title"
+            subtitle="profile.emailSettings.subtitle"
+            onClick={() => setShowEmailSettings(true)}
+          />
+          <MenuItem 
+            icon={Shield}
+            title="profile.passwordSecurity.title"
+            subtitle="profile.passwordSecurity.subtitle"
+            onClick={() => navigate('/forgot-password')}
+          />
+        </div>
+      </ProfileSection>
 
-        <motion.div variants={scaleIn} className="bg-white rounded-xl shadow-sm p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-800">Days Streak</h3>
-            <Calendar className="text-indigo-600" size={24} />
-          </div>
-          <p className="text-3xl font-bold text-indigo-600">{stats.totalDaysStreak}</p>
-        </motion.div>
+      {/* Preferences */}
+      <ProfileSection title="profile.preferences.title">
+        <div className="space-y-2 divide-y divide-gray-100">
+          <MenuItem 
+            icon={Bell}
+            title="profile.notifications.title"
+            subtitle="profile.notifications.subtitle"
+            onClick={() => setShowNotifications(true)}
+          />
+          <MenuItem 
+            icon={Activity}
+            title="profile.activityLog.title"
+            subtitle="profile.activityLog.subtitle"
+            onClick={() => setShowActivityLog(true)}
+          />
+          <MenuItem 
+            icon={Settings}
+            title="profile.appSettings.title"
+            subtitle="profile.appSettings.subtitle"
+            onClick={() => setShowAppSettings(true)}
+          />
+        </div>
+      </ProfileSection>
 
-        <motion.div variants={scaleIn} className="bg-white rounded-xl shadow-sm p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-800">Completed</h3>
-            <Trophy className="text-indigo-600" size={24} />
-          </div>
-          <p className="text-3xl font-bold text-indigo-600">{stats.completedHabits}</p>
-        </motion.div>
+      {/* Logout Section */}
+      <motion.div variants={fadeIn} className="mt-8">
+        <button
+          onClick={handleLogout}
+          disabled={loading}
+          className="w-full flex items-center justify-center gap-2 px-4 py-3 
+                   bg-red-50 text-red-600 rounded-xl hover:bg-red-100 
+                   transition-colors duration-200"
+        >
+          <LogOut className="w-5 h-5" />
+          <span className="font-medium">{t('profile.logout.title')}</span>
+        </button>
       </motion.div>
 
-      <div className="mt-8 bg-gray-50 rounded-2xl p-6">
-        <div className="flex gap-4 mb-6">
-          <button
-            onClick={() => setActiveTab('achievements')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              activeTab === 'achievements'
-                ? 'bg-indigo-600 text-white'
-                : 'bg-white text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            Achievements
-          </button>
-          <button
-            onClick={() => setActiveTab('statistics')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              activeTab === 'statistics'
-                ? 'bg-indigo-600 text-white'
-                : 'bg-white text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            Statistics
-          </button>
-        </div>
-
-        <div className="p-6">
-          {activeTab === 'achievements' ? renderAchievements() : renderStatistics()}
-        </div>
-      </div>
+      {/* Modals */}
+      <PersonalInfoModal 
+        isOpen={showPersonalInfo} 
+        onClose={() => setShowPersonalInfo(false)} 
+      />
+      <EmailSettingsModal 
+        isOpen={showEmailSettings} 
+        onClose={() => setShowEmailSettings(false)} 
+      />
+      <NotificationsModal 
+        isOpen={showNotifications} 
+        onClose={() => setShowNotifications(false)} 
+      />
+      <ActivityLogModal 
+        isOpen={showActivityLog} 
+        onClose={() => setShowActivityLog(false)} 
+      />
+      <AppSettingsModal 
+        isOpen={showAppSettings} 
+        onClose={() => setShowAppSettings(false)} 
+      />
     </motion.div>
   );
 };

@@ -14,6 +14,9 @@ import { useAuth } from './contexts/AuthContext';
 import Donation from './pages/Donation';
 import Feedback from './pages/Feedback';
 import ForgotPassword from './pages/ForgotPassword';
+import { PreferencesProvider } from './contexts/PreferencesContext';
+import './i18n/config';
+import { useLanguageSync } from './hooks/useLanguageSync';
 
 function AppRoutes() {
   const { currentUser } = useAuth();
@@ -74,15 +77,19 @@ function AppRoutes() {
 }
 
 function App() {
+  useLanguageSync();
+
   return (
     <AuthProvider>
-      <Router>
-        <div className="min-h-screen bg-gray-50">
-          <Navbar />
-          <AppRoutes />
-        </div>
-        <Toast />
-      </Router>
+      <PreferencesProvider>
+        <Router>
+          <div className="min-h-screen bg-gray-50">
+            <Navbar />
+            <AppRoutes />
+          </div>
+          <Toast />
+        </Router>
+      </PreferencesProvider>
     </AuthProvider>
   );
 }

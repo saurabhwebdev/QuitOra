@@ -6,8 +6,10 @@ import { Mail, Lock, LogIn } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { fadeIn } from '../utils/animations';
 import { FcGoogle } from 'react-icons/fc';
+import { useTranslation } from 'react-i18next';
 
 const Login = () => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -60,8 +62,8 @@ const Login = () => {
           transition={{ delay: 0.1 }}
           className="text-center mb-8"
         >
-          <h2 className="text-3xl font-bold text-gray-800">Welcome Back</h2>
-          <p className="text-gray-600 mt-2">Sign in to continue your journey</p>
+          <h2 className="text-3xl font-bold text-gray-800">{t('auth.login')}</h2>
+          <p className="text-gray-600 mt-2">{t('auth.welcomeBack')}</p>
         </motion.div>
         
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -70,7 +72,7 @@ const Login = () => {
             transition={{ delay: 0.2 }}
           >
             <label className="block text-gray-700 mb-2 font-medium" htmlFor="email">
-              Email Address
+              {t('auth.email')}
             </label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
@@ -92,7 +94,7 @@ const Login = () => {
           >
             <div className="flex justify-between items-center mb-2">
               <label className="text-gray-700 font-medium" htmlFor="password">
-                Password
+                {t('auth.password')}
               </label>
               <Link 
                 to="/forgot-password"
@@ -131,12 +133,12 @@ const Login = () => {
                   transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                   className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
                 />
-                Signing in...
+                {t('common.loading')}
               </>
             ) : (
               <>
                 <LogIn size={20} />
-                Sign In
+                {t('auth.login')}
               </>
             )}
           </motion.button>
@@ -146,7 +148,7 @@ const Login = () => {
               <div className="w-full border-t border-gray-200"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Or continue with</span>
+              <span className="px-2 bg-white text-gray-500">{t('auth.orContinueWith')}</span>
             </div>
           </div>
 
@@ -163,7 +165,7 @@ const Login = () => {
                      justify-center gap-2 font-medium"
           >
             <FcGoogle size={20} />
-            Sign in with Google
+            {t('auth.googleSignIn')}
           </motion.button>
         </form>
         
@@ -173,12 +175,12 @@ const Login = () => {
           className="mt-6 text-center space-y-4"
         >
           <p className="text-gray-600">
-            Don't have an account?{' '}
+            {t('auth.noAccount')}{' '}
             <Link 
               to="/register" 
               className="text-indigo-600 hover:text-indigo-700 font-medium hover:underline"
             >
-              Create Account
+              {t('auth.createAccount')}
             </Link>
           </p>
           <p className="text-gray-600">
@@ -186,7 +188,7 @@ const Login = () => {
               to="/" 
               className="text-gray-500 hover:text-indigo-600 text-sm transition-colors"
             >
-              ← Back to Homepage
+              ← {t('common.backToHome')}
             </Link>
           </p>
         </motion.div>

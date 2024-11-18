@@ -7,9 +7,17 @@ import {
   User,
   GoogleAuthProvider,
   signInWithPopup,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  updateEmail,
+  updatePassword,
+  updateProfile,
+  EmailAuthProvider,
+  reauthenticateWithCredential
 } from 'firebase/auth';
 import { auth } from '../config/firebase';
+import { useActivityLog } from '../hooks/useActivityLog';
+import { useTranslation } from 'react-i18next';
+import { toast } from 'react-hot-toast';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -17,6 +25,9 @@ interface AuthContextType {
   register: (email: string, password: string) => Promise<any>;
   loginWithGoogle: () => Promise<any>;
   resetPassword: (email: string) => Promise<void>;
+  updateUserEmail: (newEmail: string, password: string) => Promise<void>;
+  updateUserPassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  updateUserProfile: (displayName: string) => Promise<void>;
   logout: () => Promise<any>;
   loading: boolean;
   error: string | null;
@@ -29,9 +40,11 @@ export function useAuth() {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const { t } = useTranslation();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { logActivity, templates } = useActivityLog();
 
   async function register(email: string, password: string) {
     try {
@@ -46,19 +59,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function login(email: string, password: string) {
     try {
       const result = await signInWithEmailAndPassword(auth, email, password);
+      await logActivity(templates.auth.login(email));
+      toast.success(t('auth.loginSuccess'));
       return result;
     } catch (err: any) {
-      console.error('Login error:', err);
-      throw new Error(err.message || 'Failed to login');
+      await logActivity(templates.auth.loginFailed(email));
+      toast.error(t('auth.loginError'));
+      throw err;
     }
   }
 
   async function logout() {
     try {
+      await logActivity(templates.auth.logout());
       await signOut(auth);
     } catch (err: any) {
-      console.error('Logout error:', err);
-      throw new Error(err.message || 'Failed to logout');
+      throw err;
     }
   }
 
@@ -76,9 +92,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function resetPassword(email: string) {
     try {
       await sendPasswordResetEmail(auth, email);
+      await logActivity(templates.auth.passwordResetRequested(email));
     } catch (err: any) {
-      console.error('Password reset error:', err);
-      throw new Error(err.message || 'Failed to send password reset email');
+      throw err;
+    }
+  }
+
+  async function reauthenticate(password: string) {
+    if (!currentUser?.email) throw new Error('No user email found');
+    const credential = EmailAuthProvider.credential(currentUser.email, password);
+    await reauthenticateWithCredential(currentUser, credential);
+  }
+
+  async function updateUserEmail(newEmail: string, password: string) {
+    if (!currentUser) throw new Error('No user found');
+    try {
+      await reauthenticate(password);
+      await updateEmail(currentUser, newEmail);
+    } catch (err: any) {
+      console.error('Email update error:', err);
+      throw new Error(err.message || 'Failed to update email');
+    }
+  }
+
+  async function updateUserPassword(currentPassword: string, newPassword: string) {
+    if (!currentUser) throw new Error('No user found');
+    try {
+      await reauthenticate(currentPassword);
+      await updatePassword(currentUser, newPassword);
+    } catch (err: any) {
+      console.error('Password update error:', err);
+      throw new Error(err.message || 'Failed to update password');
+    }
+  }
+
+  async function updateUserProfile(displayName: string) {
+    if (!currentUser) throw new Error('No user found');
+    try {
+      await updateProfile(currentUser, { displayName });
+    } catch (err: any) {
+      console.error('Profile update error:', err);
+      throw new Error(err.message || 'Failed to update profile');
     }
   }
 
@@ -104,6 +158,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     register,
     loginWithGoogle,
     resetPassword,
+    updateUserEmail,
+    updateUserPassword,
+    updateUserProfile,
     logout,
     loading,
     error
