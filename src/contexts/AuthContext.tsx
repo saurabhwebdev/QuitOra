@@ -4,7 +4,9 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  User
+  User,
+  GoogleAuthProvider,
+  signInWithPopup
 } from 'firebase/auth';
 import { auth } from '../config/firebase';
 
@@ -12,6 +14,7 @@ interface AuthContextType {
   currentUser: User | null;
   login: (email: string, password: string) => Promise<any>;
   register: (email: string, password: string) => Promise<any>;
+  loginWithGoogle: () => Promise<any>;
   logout: () => Promise<any>;
   loading: boolean;
   error: string | null;
@@ -57,6 +60,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  async function loginWithGoogle() {
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      return result;
+    } catch (err: any) {
+      console.error('Google login error:', err);
+      throw new Error(err.message || 'Failed to login with Google');
+    }
+  }
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, 
       (user) => {
@@ -77,6 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     currentUser,
     login,
     register,
+    loginWithGoogle,
     logout,
     loading,
     error

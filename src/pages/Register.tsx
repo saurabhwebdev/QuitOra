@@ -5,13 +5,14 @@ import { motion } from 'framer-motion';
 import { Mail, Lock, UserPlus } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { fadeIn } from '../utils/animations';
+import { FcGoogle } from 'react-icons/fc';
 
 const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { register } = useAuth();
+  const { register, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from || '/';
@@ -30,6 +31,19 @@ const Register = () => {
       navigate(from);
     } catch (err: any) {
       toast.error(err.message || 'Failed to create account');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSignup = async () => {
+    try {
+      setLoading(true);
+      await loginWithGoogle();
+      toast.success('Account created successfully!');
+      navigate(from);
+    } catch (err) {
+      toast.error('Failed to sign up with Google');
     } finally {
       setLoading(false);
     }
@@ -143,6 +157,31 @@ const Register = () => {
                 Create Account
               </>
             )}
+          </motion.button>
+
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">Or continue with</span>
+            </div>
+          </div>
+
+          <motion.button
+            variants={fadeIn}
+            transition={{ delay: 0.6 }}
+            type="button"
+            onClick={handleGoogleSignup}
+            disabled={loading}
+            className="w-full bg-white text-gray-600 py-3 px-4 rounded-lg 
+                     border border-gray-200 hover:bg-gray-50 
+                     transition duration-200 disabled:opacity-50 
+                     disabled:cursor-not-allowed flex items-center 
+                     justify-center gap-2 font-medium"
+          >
+            <FcGoogle size={20} />
+            Sign up with Google
           </motion.button>
         </form>
         

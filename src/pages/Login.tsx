@@ -5,12 +5,13 @@ import { motion } from 'framer-motion';
 import { Mail, Lock, LogIn } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { fadeIn } from '../utils/animations';
+import { FcGoogle } from 'react-icons/fc';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from || '/';
@@ -25,6 +26,19 @@ const Login = () => {
       navigate(from);
     } catch (err) {
       toast.error('Invalid email or password');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      setLoading(true);
+      await loginWithGoogle();
+      toast.success('Welcome back!');
+      navigate(from);
+    } catch (err) {
+      toast.error('Failed to sign in with Google');
     } finally {
       setLoading(false);
     }
@@ -117,6 +131,31 @@ const Login = () => {
                 Sign In
               </>
             )}
+          </motion.button>
+
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">Or continue with</span>
+            </div>
+          </div>
+
+          <motion.button
+            variants={fadeIn}
+            transition={{ delay: 0.5 }}
+            type="button"
+            onClick={handleGoogleLogin}
+            disabled={loading}
+            className="w-full bg-white text-gray-600 py-3 px-4 rounded-lg 
+                     border border-gray-200 hover:bg-gray-50 
+                     transition duration-200 disabled:opacity-50 
+                     disabled:cursor-not-allowed flex items-center 
+                     justify-center gap-2 font-medium"
+          >
+            <FcGoogle size={20} />
+            Sign in with Google
           </motion.button>
         </form>
         
