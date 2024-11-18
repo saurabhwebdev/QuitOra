@@ -8,6 +8,9 @@ import { motion } from 'framer-motion';
 import { Calendar, Target, Tag, FileText, ArrowLeft, Cigarette, Monitor, Pizza, Clock, ShoppingBag, Coffee, MoreHorizontal } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { fadeIn, containerVariants } from '../utils/animations';
+import { useTranslation } from 'react-i18next';
+
+const PRESET_DAYS = [7, 14, 30, 60, 90];
 
 const CATEGORIES = [
   { id: 'smoking', label: 'Smoking', icon: Cigarette },
@@ -19,9 +22,8 @@ const CATEGORIES = [
   { id: 'other', label: 'Other', icon: MoreHorizontal }
 ];
 
-const PRESET_DAYS = [7, 14, 30, 60, 90];
-
 const AddHabit = () => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState<HabitFormData>({
     name: '',
     description: '',
@@ -72,10 +74,11 @@ const AddHabit = () => {
         <button
           onClick={() => navigate(-1)}
           className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          aria-label={t('addHabit.backButton')}
         >
           <ArrowLeft size={20} className="text-gray-600" />
         </button>
-        <h1 className="text-2xl font-bold text-gray-800">Add New Habit</h1>
+        <h1 className="text-2xl font-bold text-gray-800">{t('addHabit.title')}</h1>
       </motion.div>
 
       <motion.form 
@@ -88,14 +91,14 @@ const AddHabit = () => {
           <motion.div variants={fadeIn}>
             <label className="block text-gray-700 mb-4 flex items-center gap-2">
               <Tag size={18} className="text-indigo-600" />
-              <span className="font-medium">What habit do you want to quit?</span>
+              <span className="font-medium">{t('addHabit.habitName.label')}</span>
             </label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow"
-              placeholder="Enter habit name"
+              placeholder={t('addHabit.habitName.placeholder')}
               required
             />
           </motion.div>
@@ -103,14 +106,14 @@ const AddHabit = () => {
           <motion.div variants={fadeIn}>
             <label className="block text-gray-700 mb-4 flex items-center gap-2">
               <FileText size={18} className="text-indigo-600" />
-              <span className="font-medium">Why do you want to quit?</span>
+              <span className="font-medium">{t('addHabit.motivation.label')}</span>
             </label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow resize-none"
               style={{ height: 'calc(100% - 4rem)' }}
-              placeholder="Your motivation to quit this habit"
+              placeholder={t('addHabit.motivation.placeholder')}
               required
             />
           </motion.div>
@@ -121,7 +124,7 @@ const AddHabit = () => {
           <motion.div variants={fadeIn}>
             <label className="block text-gray-700 mb-4 flex items-center gap-2">
               <Calendar size={18} className="text-indigo-600" />
-              <span className="font-medium">When do you want to start?</span>
+              <span className="font-medium">{t('addHabit.startDate.label')}</span>
             </label>
             <input
               type="date"
@@ -136,7 +139,7 @@ const AddHabit = () => {
           <motion.div variants={fadeIn}>
             <label className="block text-gray-700 mb-4 flex items-center gap-2">
               <Target size={18} className="text-indigo-600" />
-              <span className="font-medium">Choose your target days</span>
+              <span className="font-medium">{t('addHabit.targetDays.label')}</span>
             </label>
             <div className="grid grid-cols-5 gap-2 mb-4">
               {PRESET_DAYS.map(days => (
@@ -152,7 +155,7 @@ const AddHabit = () => {
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
-                  {days} days
+                  {days} {t('addHabit.targetDays.days')}
                 </motion.button>
               ))}
             </div>
@@ -170,7 +173,9 @@ const AddHabit = () => {
           </motion.div>
 
           <motion.div variants={fadeIn}>
-            <label className="block text-gray-700 mb-4 font-medium">Select Category</label>
+            <label className="block text-gray-700 mb-4 font-medium">
+              {t('addHabit.categories.label')}
+            </label>
             <div className="grid grid-cols-4 gap-2">
               {CATEGORIES.map(({ id, label, icon: Icon }) => (
                 <motion.button

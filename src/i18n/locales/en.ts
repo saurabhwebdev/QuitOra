@@ -88,6 +88,22 @@ export default {
       title: 'Sign Out',
       success: 'Logged out successfully',
       error: 'Failed to log out'
+    },
+    stats: {
+      title: 'Important Stats',
+      subtitle: 'Your key metrics and progress',
+      dailyStreak: 'Daily Streak',
+      completionRate: 'Completion Rate',
+      totalHabits: 'Total Habits',
+      monthlyProgress: 'Monthly Progress'
+    },
+    charts: {
+      title: 'Analytics',
+      subtitle: 'Visual insights of your progress',
+      weeklyActivity: 'Weekly Activity',
+      monthlyTrends: 'Monthly Trends',
+      habitDistribution: 'Habit Distribution',
+      timeOfDay: 'Time of Day Analysis'
     }
   },
   preferences: {
@@ -117,6 +133,51 @@ export default {
         title: 'Daily Reminders',
         description: 'Get reminded to check in daily'
       }
+    }
+  },
+  addHabit: {
+    title: 'Add New Habit',
+    backButton: 'Back',
+    habitName: {
+      label: 'What habit do you want to quit?',
+      placeholder: 'Enter habit name'
+    },
+    motivation: {
+      label: 'Why do you want to quit?',
+      placeholder: 'Your motivation to quit this habit'
+    },
+    category: {
+      label: 'Category',
+      placeholder: 'Select a category'
+    },
+    frequency: {
+      label: 'How often do you want to track this?',
+      daily: 'Daily',
+      weekly: 'Weekly',
+      monthly: 'Monthly'
+    },
+    reminder: {
+      label: 'Set Reminder',
+      placeholder: 'Select time'
+    },
+    submit: 'Create Habit',
+    submitting: 'Creating...',
+    startDate: {
+      label: 'When do you want to start?'
+    },
+    targetDays: {
+      label: 'Choose your target days',
+      days: 'days'
+    },
+    categories: {
+      label: 'Select Category',
+      smoking: 'Smoking',
+      'social-media': 'Social Media',
+      'junk-food': 'Junk Food',
+      procrastination: 'Procrastination',
+      shopping: 'Shopping',
+      caffeine: 'Caffeine',
+      other: 'Other'
     }
   }
 }; 

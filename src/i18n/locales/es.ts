@@ -88,6 +88,67 @@ export default {
       title: 'Cerrar Sesión',
       success: 'Sesión cerrada exitosamente',
       error: 'Error al cerrar sesión'
+    },
+    stats: {
+      title: 'Estadísticas Importantes',
+      subtitle: 'Tus métricas y progreso clave',
+      dailyStreak: 'Racha Diaria',
+      completionRate: 'Tasa de Finalización',
+      totalHabits: 'Hábitos Totales',
+      monthlyProgress: 'Progreso Mensual'
+    },
+    charts: {
+      title: 'Análisis',
+      subtitle: 'Información visual de tu progreso',
+      weeklyActivity: 'Actividad Semanal',
+      monthlyTrends: 'Tendencias Mensuales',
+      habitDistribution: 'Distribución de Hábitos',
+      timeOfDay: 'Análisis de Hora del Día'
+    },
+    addHabit: {
+      title: 'Añadir Nuevo Hábito',
+      backButton: 'Volver',
+      habitName: {
+        label: '¿Qué hábito quieres dejar?',
+        placeholder: 'Ingresa el nombre del hábito'
+      },
+      motivation: {
+        label: '¿Por qué quieres dejarlo?',
+        placeholder: 'Tu motivación para dejar este hábito'
+      },
+      category: {
+        label: 'Categoría',
+        placeholder: 'Selecciona una categoría'
+      },
+      frequency: {
+        label: '¿Con qué frecuencia quieres hacer seguimiento?',
+        daily: 'Diario',
+        weekly: 'Semanal',
+        monthly: 'Mensual'
+      },
+      reminder: {
+        label: 'Establecer Recordatorio',
+        placeholder: 'Seleccionar hora'
+      },
+      submit: 'Crear Hábito',
+      submitting: 'Creando...',
+      startDate: {
+        label: '¿Cuándo quieres empezar?'
+      },
+      targetDays: {
+        label: 'Elige tus días objetivo',
+        days: 'días'
+      },
+      categories: {
+        label: 'Seleccionar Categoría',
+        smoking: 'Fumar',
+        'social-media': 'Redes Sociales',
+        'junk-food': 'Comida Chatarra',
+        procrastination: 'Procrastinación',
+        shopping: 'Compras',
+        caffeine: 'Cafeína',
+        other: 'Otro'
+      }
     }
   },
   // ... rest of the translations
