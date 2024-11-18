@@ -90,9 +90,17 @@ const Login = () => {
             variants={fadeIn}
             transition={{ delay: 0.3 }}
           >
-            <label className="block text-gray-700 mb-2 font-medium" htmlFor="password">
-              Password
-            </label>
+            <div className="flex justify-between items-center mb-2">
+              <label className="text-gray-700 font-medium" htmlFor="password">
+                Password
+              </label>
+              <Link 
+                to="/forgot-password"
+                className="text-sm text-indigo-600 hover:text-indigo-700 hover:underline"
+              >
+                Forgot Password?
+              </Link>
+            </div>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <input

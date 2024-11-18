@@ -13,6 +13,7 @@ import { Toast } from './components/Toast';
 import { useAuth } from './contexts/AuthContext';
 import Donation from './pages/Donation';
 import Feedback from './pages/Feedback';
+import ForgotPassword from './pages/ForgotPassword';
 
 function AppRoutes() {
   const { currentUser } = useAuth();
@@ -66,6 +67,7 @@ function AppRoutes() {
             </PrivateRoute>
           } 
         />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
       </Routes>
     </AnimatePresence>
   );

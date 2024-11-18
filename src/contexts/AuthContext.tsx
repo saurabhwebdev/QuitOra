@@ -6,7 +6,8 @@ import {
   onAuthStateChanged,
   User,
   GoogleAuthProvider,
-  signInWithPopup
+  signInWithPopup,
+  sendPasswordResetEmail
 } from 'firebase/auth';
 import { auth } from '../config/firebase';
 
@@ -15,6 +16,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<any>;
   register: (email: string, password: string) => Promise<any>;
   loginWithGoogle: () => Promise<any>;
+  resetPassword: (email: string) => Promise<void>;
   logout: () => Promise<any>;
   loading: boolean;
   error: string | null;
@@ -71,6 +73,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  async function resetPassword(email: string) {
+    try {
+      await sendPasswordResetEmail(auth, email);
+    } catch (err: any) {
+      console.error('Password reset error:', err);
+      throw new Error(err.message || 'Failed to send password reset email');
+    }
+  }
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, 
       (user) => {
@@ -92,6 +103,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     login,
     register,
     loginWithGoogle,
+    resetPassword,
     logout,
     loading,
     error
